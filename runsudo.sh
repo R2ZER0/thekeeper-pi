@@ -1,3 +1,3 @@
 #!/bin/bash
 
-sudo /home/pi/run.sh
+sudo /home/pi/project/run.sh
