@@ -1,0 +1,3 @@
+TFT display pinout: https://pinout.xyz/pinout/pitft_plus_35i#
+
+Also see: https://stackoverflow.com/questions/19240422/display-cv2-videocapture-image-inside-pygame-surface#23854651

@@ -22,7 +22,7 @@ cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 # define function to get current frame of the camera.
 def get_frame():
     rawCapture = PiRGBArray(camera)
-    camera.capture(rawCapture, format="rgb")
+    camera.capture(rawCapture, format="bgr")
     return rawCapture.array
 
 class pyscope :
@@ -72,9 +72,21 @@ class pyscope :
     def test(self):
         # Fill the screen with red (255, 0, 0)
         red = (255, 0, 0)
-        self.screen.fill(red)
-        # Update the display
+        green = (0, 255, 0)
+        blue = (0, 0, 255)
+        
+        self.screen.fill(red) 
         pygame.display.update()
+
+        sleep(0.5)
+        self.screen.fill(green) 
+        pygame.display.update()
+
+        sleep(0.5)
+        self.screen.fill(blue)
+        pygame.display.update()
+        
+        sleep(0.5)
 
 # Create an instance of the PyScope class
 scope = pyscope()
@@ -90,12 +102,20 @@ while (run):
     img = get_frame()
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     locations = cascade.detectMultiScale(gray, 1.3, 5)
+    
+    save = False
     for (x, y, w, h) in locations:
+        save = True
         cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
-    cv2.imwrite("/run/object_locations.bmp", img)
-    #buf.write(img.tobytes())
 
-    pgimg = pygame.image.load("/run/object_locations.bmp")
+    if save:
+        cv2.imwrite("/run/object_locations.bmp", img)
+
+    pgimg = cv2.cvtColor(img ,cv2.COLOR_BGR2RGB)
+    pgimg = np.rot90(pgimg)
+    #pgimg = pygame.image.load("/run/object_locations.bmp")
+    
+    pgimg = pygame.surfarray.make_surface(pgimg)
     screen.blit(pgimg, (0,0))
 
     pygame.display.update()
