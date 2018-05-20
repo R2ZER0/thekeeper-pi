@@ -147,7 +147,9 @@ def do_frame(start, frame, run_count):
     for (x, y, w, h) in locations:
         if (w * h) >= (SCREEN_AREA/FACE_DETECT_DIVIDER):
             capture_face(img, run_count)
-            cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255), 2)
+            cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
+            cv2.rectangle(img, (x-4, y-4), (x+w+8, y+h+8), (255, 0, 0), 2)
+            cv2.rectangle(img, (x-8, y-8), (x+w+16, y+h+16), (0, 0, 255), 2)
             #cv2.circle(img, ( int(x+w/2), int(y+h/2) ), int((w+h)/3), (0, 0, 255), 3)
         else:
             colour = calc_colour(run_count)
