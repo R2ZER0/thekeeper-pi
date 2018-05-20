@@ -2,6 +2,7 @@ import os
 import pygame
 import time
 import random
+import colorsys
 
 from requests import Session
 from threading import Thread
@@ -15,8 +16,14 @@ from time import sleep
 
 DEBUG = True
 
+SCREEN_SIZE = (320, 240)
+SCREEN_AREA = SCREEN_SIZE[0] * SCREEN_SIZE[1]
+
+# face must take up 1/this'th area of the screen to capture it
+FACE_DETECT_DIVIDER = 3
+
 # initialize the camera and grab a reference to the raw camera capture
-camera = PiCamera(resolution=(320, 240), framerate=30)
+camera = PiCamera(resolution=SCREEN_SIZE, framerate=30)
 
 # allow the camera to warpup
 sleep(0.1)
@@ -96,7 +103,10 @@ screen = scope.screen
 def send_file(filename):
     session = Session()
     url = 'http://192.168.2.134:5050/files' 
-    res = session.post(url, data={}, files={'file': open(filename, 'rb')})
+    fileh = open(filename, 'rb')
+    res = session.post(url, data={}, files={'file': fileh})
+    fileh.close()
+    os.remove(filename)
     if DEBUG:
         print("Upload Response {}: {}".format(res.status_code, res.text)) 
 
@@ -107,31 +117,42 @@ def send_file_async(filename):
 run = True
 run_count = 0
 
-rawCapture = PiRGBArray(camera, size=(320, 240))
+rawCapture = PiRGBArray(camera, size=SCREEN_SIZE)
 #return rawCapture.array
 
 wait_until = time.time()
+
+def calc_colour(n):
+    N = 30.0 # Number of frames per full colour cycle
+    (r, g, b) = colorsys.hsv_to_rgb((n % N) / N, 1, 0.5)
+    return (int(b * 255), int(g * 255), int(r * 255))
+
+def capture_face(img, run_count):
+    file_name = "/run/faces/frame_{}.png".format(run_count)
+    print("Found Face, saving {}...".format(file_name), end='')
+    cv2.imwrite(file_name, img)
+    print("Done", time.time() - start)
+    
+    global wait_until
+    wait_until = time.time() + 3.0
+
+    send_file_async(file_name)
 
 def do_frame(start, frame, run_count):
     img = frame.array
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     locations = cascade.detectMultiScale(gray, 1.3, 5)
+
+
+    for (x, y, w, h) in locations:
+        if (w * h) >= (SCREEN_AREA/FACE_DETECT_DIVIDER):
+            capture_face(img, run_count)
+            cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255), 2)
+            #cv2.circle(img, ( int(x+w/2), int(y+h/2) ), int((w+h)/3), (0, 0, 255), 3)
+        else:
+            colour = calc_colour(run_count)
+            cv2.circle(img, ( int(x+w/2), int(y+h/2) ), int((w+h)/4), colour, 2)
     
-    foundFaces = len(locations) > 0
-
-    if foundFaces:
-        file_name = "/run/faces/frame_{}.png".format(run_count)
-        print("Found Face, saving {}...".format(file_name), end='')
-        cv2.imwrite(file_name, img)
-        print("Done", time.time() - start)
-    
-        for (x, y, w, h) in locations:
-            cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
-
-        global wait_until
-        wait_until = time.time() + 1.0
-
-        send_file_async(file_name)
 
     pgimg = cv2.cvtColor(img ,cv2.COLOR_BGR2RGB)
     pgimg = np.rot90(pgimg)
