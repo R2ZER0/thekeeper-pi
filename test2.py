@@ -96,18 +96,10 @@ rawCapture = PiRGBArray(camera, size=(320, 240))
 
 for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
     start = time.time()
-#    print("\n\nGet Frame {}...".format(run_count), time.time(), ' ', time.time() - start, end=' ')
-    #img = get_frame(start)
+    
     img = frame.array
-#    print("Done", time.time() - start)
-
-#    print("Convert to Grey...", end='')
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-#    print("Done", time.time() - start)
-
-#    print("Find Faces...", end='')
     locations = cascade.detectMultiScale(gray, 1.3, 5)
-#    print("Done", time.time() - start)
     
     save = False
     for (x, y, w, h) in locations:
@@ -119,23 +111,12 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
         cv2.imwrite("/run/object_locations.bmp", img)
         print("Done", time.time() - start)
 
-#    print("Converting BGR => RGB...", end='')
     pgimg = cv2.cvtColor(img ,cv2.COLOR_BGR2RGB)
-#    print("Done", time.time() - start)
-
-#    print("Rotating...", end='')
     pgimg = np.rot90(pgimg)
-#    print("Done", time.time() - start)
-    #pgimg = pygame.image.load("/run/object_locations.bmp")
-    
-#    print("Blitting...", end='')
     pgimg = pygame.surfarray.make_surface(pgimg)
     screen.blit(pgimg, (0,0))
-#    print("Done", time.time() - start)
 
-#    print("Updating Display...", end='')
     pygame.display.update()
-#    print("Done", time.time() - start)
 
     rawCapture.truncate(0)
     run_count = run_count + 1
