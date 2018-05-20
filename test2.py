@@ -94,29 +94,43 @@ run_count = 0
 rawCapture = PiRGBArray(camera, size=(320, 240))
 #return rawCapture.array
 
-for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-    start = time.time()
-    
+wait_until = time.time()
+
+
+def do_frame(start, frame, run_count):
     img = frame.array
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     locations = cascade.detectMultiScale(gray, 1.3, 5)
     
-    save = False
-    for (x, y, w, h) in locations:
-        save = True
-        cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
+    foundFaces = len(locations) > 0
 
-    if save:
-        print("Found Face, saving...", end='')
-        cv2.imwrite("/run/object_locations.bmp", img)
+    if foundFaces:
+        file_name = "/run/faces/frame_{}.bmp".format(run_count)
+        print("Found Face, saving {}...".format(file_name), end='')
+        cv2.imwrite(file_name, img)
         print("Done", time.time() - start)
+    
+        for (x, y, w, h) in locations:
+            cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
 
+        # TODO: upload file
+
+        global wait_until
+        wait_until = time.time() + 1.0
+    
     pgimg = cv2.cvtColor(img ,cv2.COLOR_BGR2RGB)
     pgimg = np.rot90(pgimg)
     pgimg = pygame.surfarray.make_surface(pgimg)
     screen.blit(pgimg, (0,0))
 
     pygame.display.update()
+
+
+for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+    start = time.time()
+
+    if not (wait_until > start):
+        do_frame(start, frame, run_count)
 
     rawCapture.truncate(0)
     run_count = run_count + 1
