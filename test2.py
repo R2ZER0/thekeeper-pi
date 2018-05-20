@@ -3,12 +3,17 @@ import pygame
 import time
 import random
 
+from requests import Session
+from threading import Thread
+
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 
 import cv2
 import numpy as np
 from time import sleep
+
+DEBUG = True
 
 # initialize the camera and grab a reference to the raw camera capture
 camera = PiCamera(resolution=(320, 240), framerate=30)
@@ -85,8 +90,19 @@ class pyscope :
 # Create an instance of the PyScope class
 scope = pyscope()
 scope.test()
-
 screen = scope.screen
+
+
+def send_file(filename):
+    session = Session()
+    url = 'http://192.168.2.134:5050/files' 
+    res = session.post(url, data={}, files={'file': open(filename, 'rb')})
+    if DEBUG:
+        print("Upload Response {}: {}".format(res.status_code, res.text)) 
+
+def send_file_async(filename):
+    thread = Thread(target=send_file, args=(filename,))
+    thread.start()
 
 run = True
 run_count = 0
@@ -95,7 +111,6 @@ rawCapture = PiRGBArray(camera, size=(320, 240))
 #return rawCapture.array
 
 wait_until = time.time()
-
 
 def do_frame(start, frame, run_count):
     img = frame.array
@@ -113,11 +128,11 @@ def do_frame(start, frame, run_count):
         for (x, y, w, h) in locations:
             cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
 
-        # TODO: upload file
-
         global wait_until
         wait_until = time.time() + 1.0
-    
+
+        send_file_async(file_name)
+
     pgimg = cv2.cvtColor(img ,cv2.COLOR_BGR2RGB)
     pgimg = np.rot90(pgimg)
     pgimg = pygame.surfarray.make_surface(pgimg)
