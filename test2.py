@@ -11,19 +11,13 @@ import numpy as np
 from time import sleep
 
 # initialize the camera and grab a reference to the raw camera capture
-camera = PiCamera(resolution=(320, 240))
+camera = PiCamera(resolution=(320, 240), framerate=30)
 
 # allow the camera to warpup
 sleep(0.1)
 
 # load the cascade for detecting faces. source: TODO
 cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
-
-# define function to get current frame of the camera.
-def get_frame():
-    rawCapture = PiRGBArray(camera)
-    camera.capture(rawCapture, format="bgr")
-    return rawCapture.array
 
 class pyscope :
     screen = None;
@@ -78,30 +72,42 @@ class pyscope :
         self.screen.fill(red) 
         pygame.display.update()
 
-        sleep(0.5)
+        sleep(0.2)
         self.screen.fill(green) 
         pygame.display.update()
 
-        sleep(0.5)
+        sleep(0.2)
         self.screen.fill(blue)
         pygame.display.update()
         
-        sleep(0.5)
+        sleep(0.2)
 
 # Create an instance of the PyScope class
 scope = pyscope()
 scope.test()
-time.sleep(1)
 
 screen = scope.screen
 
 run = True
-run_count = 100
+run_count = 0
 
-while (run):
-    img = get_frame()
+rawCapture = PiRGBArray(camera, size=(320, 240))
+#return rawCapture.array
+
+for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+    start = time.time()
+#    print("\n\nGet Frame {}...".format(run_count), time.time(), ' ', time.time() - start, end=' ')
+    #img = get_frame(start)
+    img = frame.array
+#    print("Done", time.time() - start)
+
+#    print("Convert to Grey...", end='')
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+#    print("Done", time.time() - start)
+
+#    print("Find Faces...", end='')
     locations = cascade.detectMultiScale(gray, 1.3, 5)
+#    print("Done", time.time() - start)
     
     save = False
     for (x, y, w, h) in locations:
@@ -109,20 +115,27 @@ while (run):
         cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
 
     if save:
+        print("Found Face, saving...", end='')
         cv2.imwrite("/run/object_locations.bmp", img)
+        print("Done", time.time() - start)
 
+#    print("Converting BGR => RGB...", end='')
     pgimg = cv2.cvtColor(img ,cv2.COLOR_BGR2RGB)
+#    print("Done", time.time() - start)
+
+#    print("Rotating...", end='')
     pgimg = np.rot90(pgimg)
+#    print("Done", time.time() - start)
     #pgimg = pygame.image.load("/run/object_locations.bmp")
     
+#    print("Blitting...", end='')
     pgimg = pygame.surfarray.make_surface(pgimg)
     screen.blit(pgimg, (0,0))
+#    print("Done", time.time() - start)
 
+#    print("Updating Display...", end='')
     pygame.display.update()
+#    print("Done", time.time() - start)
 
-    run_count = run_count - 1
-    if run_count < 0:
-        run = True
-
-time.sleep(5)
-
+    rawCapture.truncate(0)
+    run_count = run_count + 1
