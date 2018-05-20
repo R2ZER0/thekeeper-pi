@@ -120,7 +120,7 @@ def do_frame(start, frame, run_count):
     foundFaces = len(locations) > 0
 
     if foundFaces:
-        file_name = "/run/faces/frame_{}.bmp".format(run_count)
+        file_name = "/run/faces/frame_{}.png".format(run_count)
         print("Found Face, saving {}...".format(file_name), end='')
         cv2.imwrite(file_name, img)
         print("Done", time.time() - start)
