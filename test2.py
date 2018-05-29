@@ -16,7 +16,8 @@ from time import sleep
 
 DEBUG = True
 
-SCREEN_SIZE = (320, 240)
+#SCREEN_SIZE = (320, 240)
+SCREEN_SIZE = (240, 320)
 SCREEN_AREA = SCREEN_SIZE[0] * SCREEN_SIZE[1]
 
 # face must take up 1/this'th area of the screen to capture it
@@ -102,7 +103,7 @@ screen = scope.screen
 
 def send_file(filename):
     session = Session()
-    url = 'http://192.168.2.134:5050/files' 
+    url = 'http://fredas-mbp:5050/files' 
     fileh = open(filename, 'rb')
     res = session.post(url, data={}, files={'file': fileh})
     fileh.close()
@@ -157,7 +158,7 @@ def do_frame(start, frame, run_count):
     
 
     pgimg = cv2.cvtColor(img ,cv2.COLOR_BGR2RGB)
-    pgimg = np.rot90(pgimg)
+    #pgimg = np.rot90(pgimg)
     pgimg = pygame.surfarray.make_surface(pgimg)
     screen.blit(pgimg, (0,0))
 
