@@ -142,6 +142,8 @@ def capture_face(img, run_count):
 def do_frame(start, frame, run_count):
     img = frame.array
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray = cv2.flip(gray, 0)
+    gray = cv2.flip(gray, 1)
     locations = cascade.detectMultiScale(gray, 1.3, 5)
 
 
@@ -158,9 +160,10 @@ def do_frame(start, frame, run_count):
     
 
     pgimg = cv2.cvtColor(img ,cv2.COLOR_BGR2RGB)
-    #pgimg = np.rot90(pgimg)
+    pgimg = np.flip(pgimg, 0)
+    pgimg = np.flip(pgimg, 1)
     pgimg = pygame.surfarray.make_surface(pgimg)
-    screen.blit(pgimg, (0,0))
+    screen.blit(pgimg, SCREEN_SIZE)
 
     pygame.display.update()
 
