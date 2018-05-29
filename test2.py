@@ -163,7 +163,7 @@ def do_frame(start, frame, run_count):
     pgimg = np.flip(pgimg, 0)
     pgimg = np.flip(pgimg, 1)
     pgimg = pygame.surfarray.make_surface(pgimg)
-    screen.blit(pgimg, SCREEN_SIZE)
+    screen.blit(pgimg, (0,0))
 
     pygame.display.update()
 
