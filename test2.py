@@ -163,7 +163,7 @@ def do_frame(start, frame, run_count):
     pgimg = cv2.cvtColor(img ,cv2.COLOR_BGR2RGB)
     pgimg = pygame.surfarray.make_surface(pgimg)
     screen.fill((0, 0, 0))
-    screen.blit(pgimg, (0, SCREEN_REAL_SIZE[1] - SCREEN_SIZE[1] ))
+    screen.blit(pgimg, (SCREEN_REAL_SIZE[1] - SCREEN_SIZE[1], 0))
 
     pygame.display.update()
 
