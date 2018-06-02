@@ -17,7 +17,7 @@ from time import sleep
 DEBUG = True
 
 #SCREEN_SIZE = (320, 240)
-#SCREEN_SIZE = (240, 320)
+SCREEN_REAL_SIZE = (240, 320)
 SCREEN_SIZE = (240, 240)
 SCREEN_AREA = SCREEN_SIZE[0] * SCREEN_SIZE[1]
 
@@ -163,7 +163,7 @@ def do_frame(start, frame, run_count):
     pgimg = cv2.cvtColor(img ,cv2.COLOR_BGR2RGB)
     pgimg = pygame.surfarray.make_surface(pgimg)
     screen.fill((0, 0, 0))
-    screen.blit(pgimg, (0,0))
+    screen.blit(pgimg, (0, SCREEN_REAL_SIZE[1] - SCREEN_SIZE[1] ))
 
     pygame.display.update()
 
